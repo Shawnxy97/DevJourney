@@ -62,4 +62,13 @@ Below are several methods to protect confidential information:
               secret = get_secret_value_response['SecretString']
               return secret
           ```
+
+          ```python
+          from .utils.secrets.py import get_secret
+
+          # Get values of the secret
+          secrets = get_secret()
+          secret_key = secrets.get('SECRET_KEY')
+          secret_value = secrets.get('SECRET_VALUE')
+          ```
      - This code snippet demonstrates how to securely retrieve secrets from AWS Secrets Manager using the Boto3 library.
