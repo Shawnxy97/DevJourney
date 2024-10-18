@@ -1,5 +1,10 @@
 # Git Flow Setup & Github Actions Setup
 
+## Roadmap
+
+- [Git Flow Setup](#git-flow-setup)
+- [Git Actions Setup](#git-actions-setup)
+- [Container Deployment on AWS EC2](#container-deployment-on-aws-ec2)
 ## Scenarios
 
 When working on a project that involves local development and deployment to AWS, it's best to follow a structured branching strategy. The **Git Flow** workflow allows for smooth handling of multiple features, hotfixes, and releases. In this setup:
@@ -39,6 +44,16 @@ This creates the develop branch as a copy of your current master branch.
 
 
 Git Flow will then help you manage feature branches, release branches, and hotfix branches following a structured workflow.
+
+- Create a new feature branch
+```bash
+git flow feature start feature_name
+```
+
+- Finish a new feature branch
+```bash
+git flow feature finish feature_name
+```
 
 [Git Flow Reference](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow)
 
@@ -220,9 +235,72 @@ Each job consists of multiple steps. The steps are executed in sequence and can 
     * **Build and Push Docker Image**: Builds a Docker image and pushes it to ECR.
 
 
+
+
 [Deploying to Amazon Elastic Container Service](https://docs.github.com/en/actions/use-cases-and-examples/deploying/deploying-to-amazon-elastic-container-service)
 
 [Using secrets in Github Actions](https://docs.github.com/en/actions/security-for-github-actions/security-guides/using-secrets-in-github-actions#creating-secrets-for-a-repository)
 
 [About GitHub Marketplace for apps](https://docs.github.com/en/apps/github-marketplace/github-marketplace-overview/about-github-marketplace-for-apps) - the pre-define actions/workflows can be found in marketplace
 
+## Container Deployment on AWS EC2
+
+From AWS ECR to AWS EC2
+
+Once the Docker container is built and pushed to AWS Elastic Container Registry (ECR), it can be deployed to an Amazon EC2 instance. The following steps will guide you through this process.
+
+**1. Building and Pushing the Docker Image to ECR**
+
+Before deploying on EC2, ensure that your Docker container is successfully built and pushed to ECR. The command format for pushing to ECR is as follows:
+```bash
+docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+
+# docker container name example: aws_account_id.dkr.ecr.ca-central-1.amazonaws.com/repository_name:commit_id
+```
+
+**2. Preparing the EC2 Instance**
+
+a. IAM Role Setup 
+
+Ensure that the EC2 instance has an IAM role attached with the required permissions. Specifically, this role must have the necessary permissions to interact with the Elastic Container Registry.
+
+b. Logging into the Docker Private Registry (ECR)
+
+Before pulling images from ECR, you need to log in to your Docker registry hosted on AWS ECR. This can be done using the following command, which retrieves an authentication token and uses it to log in to your Docker client:
+```bash
+aws ecr get-login-password --region your-region | sudo docker login --username AWS --password-stdin aws_account_id.dkr.ecr.your-region.amazonaws.com
+
+# example:aws ecr get-login-password --region ca-central-1 | sudo docker login --username AWS --password-stdin aws_account_id.dkr.ecr.ca-central-1.amazonaws.com
+```
+
+c. Pulling the Docker Image from ECR
+Once authenticated, you can pull the desired Docker image from ECR:
+
+```bash
+sudo docker pull image_URI
+```
+
+**3. Running the Docker Container on EC2**
+
+Now that the image is pulled to your EC2 instance, you can deploy the container.
+
+a. Stopping and Removing the Previous Container
+
+If a previous version of the application is running, stop and remove the container before running the new one:
+
+```bash
+sudo docker ps  # Lists all running containers
+sudo docker stop kpi_report_project_dev  # Stops the running container
+sudo docker rm kpi_report_project_dev  # Removes the stopped container
+```
+
+b. Running the Latest Docker Container
+
+Finally, you can run the latest version of your container that was just pulled from ECR. The -d flag runs the container in detached mode, and -p maps port 8002 on the host to port 8000 in the container:
+```
+sudo docker run -d -p 8002:8000 --env-file .env --name kpi_report_project_dev image_URI
+```
+
+- `-d`: runs the container in the background
+- `--env-file`: uses enviroment variables from a .env file
+- `--name`: assigns a name to the container
