@@ -28,7 +28,11 @@ The security groups control the traffic to and from your instances.
 
 **Outbound Rules (Windows Server & Linux Server):**
 
-- Outbound rules control traffic leaving the instance. Ensure the Linux instance can reach external services like S3 for backups.
+- Outbound rules control traffic leaving the instance. Ensure the Linux instance can reach external services like S3 for backups.It's okay to set a loose outbound rules.
+
+- ![image](https://github.com/user-attachments/assets/dcabd918-84f8-400f-aea0-bde5cff9b3a9)
+
+
 
 
 **Inbound Rules (Linux Server):**
@@ -43,8 +47,9 @@ The security groups control the traffic to and from your instances.
 
 2. PostgreSQL (Port 5432):
 
-    - This is the default port for PostgreSQL. Configure the inbound rule to allow connections on **port 5432** but restrict access to only the Windows Server instance using its **Elastic IP** (a static public IP). This ensures that only the Windows instance can interact with the PostgreSQL database on the Linux server.
+    - This is the default port for PostgreSQL. Configure the inbound rule to allow connections on **port 5432** but restrict access to only the Windows Server instance and the KPI Display Server using its **Elastic IP** (a static public IP). This ensures that only the Windows instance can interact with the PostgreSQL database on the Linux server.
 
+![image](https://github.com/user-attachments/assets/a38b7e81-1fe6-4518-8751-dd9aba91efeb)
 
 ## Step 3. Installing PostgreSQL on the Linux Server
 
